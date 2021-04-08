@@ -1,0 +1,41 @@
+{
+    "Comment": "State Machine that gets and uploads the report",
+    "StartAt": "Generate Report",
+    "States": {
+        "Generate Report": {
+            "Type": "Task",
+            "Resource": "${GenerateReportFunction.Arn}:$LATEST",
+            "ResultPath": "$.report",
+            "Next": "ReportReady?"
+        },
+        "ReportReady?": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Or": [
+                        {
+                            "Variable": "$.report.state",
+                            "StringEquals": "STARTED"
+                        },
+                        {
+                            "Variable": "$.report.state",
+                            "StringEquals": "INPROGRESS"
+                        }
+                    ],
+                    "Next": "wait_for_report"
+                }
+            ],
+            "Default": "Get Report"
+        },
+        "wait_for_report": {
+            "Type": "Wait",
+            "Seconds": 10,
+            "Next": "Get Report"
+        },
+        "Get Report": {
+            "Type": "Task",
+            "Resource": "{ProcessReportFunction.Arn}:$LATEST",
+            "End": true
+        }
+    }
+}
