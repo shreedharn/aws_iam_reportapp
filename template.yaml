@@ -2,6 +2,17 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   Generate IAM Credential report and upload to a specified S3 bucket using AWS Step Functions
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: IAM-ReportApp
+    Description: Generate IAM Credential report and upload to a specified S3 bucket using AWS Step Functions
+    Author: Shreedhar Natarajan
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: ./LICENSE
+    ReadmeUrl: README.md
+    HomePageUrl: https://github.com/shreedharn/aws_iam_reportapp
+    SemanticVersion: 0.1.0
+    SourceCodeUrl: https://github.com/shreedharn/aws_iam_reportapp
 Parameters:
   BucketName:
     Type: String

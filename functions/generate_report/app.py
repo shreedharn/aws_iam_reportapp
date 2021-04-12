@@ -10,7 +10,6 @@ def lambda_handler(event, context):
     try:
 
         cmd_response = iam_client.generate_credential_report()
-        print(event)
         response['state'] = cmd_response['State']
     except botocore.exceptions.ClientError as err:
         print(err)
