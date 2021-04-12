@@ -1,5 +1,5 @@
 {
-  "Comment": "State Machine that gets and uploads the report",
+  "Comment": "Generate IAM Credential report and upload to a specified S3 bucket",
   "StartAt": "Init Vars",
   "States": {
     "Init Vars": {
