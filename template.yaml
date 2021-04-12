@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  report-app
+  Sample SAM Template for report-app
+Parameters:
+  BucketName:
+    Type: String
+Resources:
+  ReportAppStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: statemachine/report_app.asl.json
+      DefinitionSubstitutions:
+        GenerateReportFunctionArn: !GetAtt GenerateReportFunction.Arn
+        ProcessReportFunctionArn: !GetAtt ProcessReportFunction.Arn
+        ResultBucketName: !Ref BucketName
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref GenerateReportFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ProcessReportFunction
+
+  GenerateReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/generate_report/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - CloudWatchLogsFullAccess
+        -  Statement:
+            - Effect: Allow
+              Action:
+                - iam:GenerateCredentialReport
+              Resource: '*'
+
+  ProcessReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/process_report/
+      Handler: app.lambda_handler
+      Runtime: python3.8
+      Policies:
+        - CloudWatchLogsFullAccess
+        - Statement:
+            - Effect: Allow
+              Action:
+                - iam:GetCredentialReport
+              Resource: '*'
+            - Sid: AllObjectActions
+              Effect: Allow
+              Action: s3:*Object
+              Resource:
+                - !Sub 'arn:aws:s3:::${BucketName}/*'
+Outputs:
+  ReportAppStateMachineArn:
+    Description: "Report App State machine ARN"
+    Value: !Ref ReportAppStateMachine
+  ReportAppStateMachineRoleArn:
+    Description: "IAM Role created for Report App State machine based on the specified SAM Policy Templates"
+    Value: !GetAtt ReportAppStateMachineRole.Arn
