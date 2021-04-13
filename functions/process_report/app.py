@@ -1,6 +1,5 @@
 import datetime
 import boto3
-import botocore
 
 iam_client = boto3.client('iam')
 s3_client = boto3.client('s3')
@@ -24,9 +23,7 @@ def lambda_handler(event, context):
         print('Pass count' + str(response['get_pass_count']))
         iam_response = iam_client.get_credential_report()
         if cmd_success(iam_response):
-            response_header = iam_response['ResponseMetadata']['HTTPHeaders']
-            datetime_str = response_header['date']
-            dt = datetime.datetime.strptime(datetime_str, '%a, %d %b %Y %H:%M:%S %Z')
+            dt = iam_response['GeneratedTime']
             date_key = datetime.datetime.strftime(dt, '%Y-%m-%d')
             time_key = datetime.datetime.strftime(dt, '%H%M%S')
             report_filename = '{}/report_{}.csv'.format(date_key, time_key)

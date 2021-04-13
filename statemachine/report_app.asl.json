@@ -47,9 +47,9 @@
           "MaxAttempts": 2
         }
       ],
-      "Next": "Report Available?"
+      "Next": "Get Report Status?"
     },
-    "Report Available?": {
+    "Get Report Status?": {
       "Type": "Choice",
       "Choices": [
         {
@@ -65,7 +65,7 @@
         {
           "Variable": "$.report.errorCode",
           "StringEquals": "ReportInProgress",
-          "Next": "Report in Progress"
+          "Next": "Report In Progress"
         },
         {
           "Or": [
@@ -83,7 +83,7 @@
       ],
       "Default": "Get Report Failed"
     },
-    "Report in Progress": {
+    "Report In Progress": {
       "Type": "Pass",
       "Next": "Wait"
     },
