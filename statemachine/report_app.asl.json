@@ -1,14 +1,16 @@
 {
   "Comment": "Generate IAM Credential report and upload to a specified S3 bucket",
-  "StartAt": "Init Vars",
+  "StartAt": "Initialize",
   "States": {
-    "Init Vars": {
+    "Initialize": {
       "Type": "Pass",
       "Result": {
-        "bucket_name": "${ResultBucketName}"
+        "bucket_name": "${ResultBucketName}",
+        "get_pass_count": 0,
+        "get_max_pass_count": 3
       },
       "ResultPath": "$.report",
-      "Next": "Generate Report"
+      "Next": "Get Report"
     },
     "Generate Report": {
       "Type": "Task",
@@ -24,28 +26,9 @@
           "MaxAttempts": 2
         }
       ],
-      "Next": "ReportReady?"
+      "Next": "Wait"
     },
-    "ReportReady?": {
-      "Type": "Choice",
-      "Choices": [
-        {
-          "Or": [
-            {
-              "Variable": "$.report.state",
-              "StringEquals": "STARTED"
-            },
-            {
-              "Variable": "$.report.state",
-              "StringEquals": "INPROGRESS"
-            }
-          ],
-          "Next": "wait_for_report"
-        }
-      ],
-      "Default": "Get Report"
-    },
-    "wait_for_report": {
+    "Wait": {
       "Type": "Wait",
       "Seconds": 10,
       "Next": "Get Report"
@@ -53,6 +36,7 @@
     "Get Report": {
       "Type": "Task",
       "Resource": "${ProcessReportFunctionArn}",
+      "ResultPath": "$.report",
       "Retry": [
         {
           "ErrorEquals": [
@@ -63,7 +47,56 @@
           "MaxAttempts": 2
         }
       ],
-      "End": true
+      "Next": "Report Available?"
+    },
+    "Report Available?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.report.state",
+          "StringEquals": "success",
+          "Next": "Get Report Succeeded"
+        },
+        {
+          "Variable": "$.report.get_pass_count",
+          "NumericGreaterThanEqualsPath": "$.report.get_max_pass_count",
+          "Next": "Get Report Failed"
+        },
+        {
+          "Variable": "$.report.errorCode",
+          "StringEquals": "ReportInProgress",
+          "Next": "Report in Progress"
+        },
+        {
+          "Or": [
+            {
+              "Variable": "$.report.errorCode",
+              "StringEquals": "ReportNotPresent"
+            },
+            {
+              "Variable": "$.report.errorCode",
+              "StringEquals": "ReportExpired"
+            }
+          ],
+          "Next": "Report Not Available"
+        }
+      ],
+      "Default": "Get Report Failed"
+    },
+    "Report in Progress": {
+      "Type": "Pass",
+      "Next": "Wait"
+    },
+    "Report Not Available": {
+      "Type": "Pass",
+      "Next": "Generate Report"
+    },
+    "Get Report Failed": {
+      "Type": "Fail",
+      "Cause": "$.report.errorCode"
+    },
+    "Get Report Succeeded": {
+      "Type": "Succeed"
     }
   }
 }
