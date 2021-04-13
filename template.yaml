@@ -11,7 +11,7 @@ Metadata:
     LicenseUrl: ./LICENSE
     ReadmeUrl: README.md
     HomePageUrl: https://github.com/shreedharn/aws_iam_reportapp
-    SemanticVersion: 0.1.0
+    SemanticVersion: 0.1.1
     SourceCodeUrl: https://github.com/shreedharn/aws_iam_reportapp
 Parameters:
   BucketName:

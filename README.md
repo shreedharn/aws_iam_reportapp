@@ -1,9 +1,10 @@
 # IAM Report App with AWS Step Functions
 
-The application uses AWS Step Functions to generate IAM Credential report and upload to a specified S3 bucket.
+The application uses AWS Step Functions to get IAM Credential report and upload it to a specified S3 bucket. Application also
+generates the report in case if it is not available.
 
 ## Prerequisites
-S3 bucket where report has to be uploaded. Bucket name is passed during SAM deploy
+S3 bucket where the report has to be uploaded. Bucket name has to be passed during SAM deploy
 
 `sam deploy --parameter-overrides BucketName=your_bucketname`
 
