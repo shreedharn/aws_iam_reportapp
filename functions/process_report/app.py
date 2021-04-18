@@ -15,7 +15,6 @@ def print_http_metadata(response):
 
 
 def lambda_handler(event, context):
-
     response = ({'state': 'failed', 'errorCode': None, **event['report']})
     response['get_pass_count'] += 1  # increment pass count
 
@@ -24,9 +23,9 @@ def lambda_handler(event, context):
         iam_response = iam_client.get_credential_report()
         if cmd_success(iam_response):
             dt = iam_response['GeneratedTime']
-            date_key = datetime.datetime.strftime(dt, '%Y-%m-%d')
-            time_key = datetime.datetime.strftime(dt, '%H%M%S')
-            report_filename = '{}/report_{}.csv'.format(date_key, time_key)
+            date_key = datetime.datetime.strftime(dt, '%Y-%m-%d-%H-%M-%S').split('-')
+            report_filename = 'year={}/month={}/day={}/hour={}/report.csv' \
+                .format(date_key[0], date_key[1], date_key[2], date_key[3]) # Split by year, monty, day, hour
             bucket_name = event['report']['bucket_name']  # Initialized in Init Var State
             s3_response = s3_client.put_object(Body=iam_response['Content'], Bucket=bucket_name, Key=report_filename)
             if cmd_success(s3_response):
