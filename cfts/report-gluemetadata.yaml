@@ -22,7 +22,6 @@ Resources:
         Name: !Ref DatabaseName
   IAMGlueTable:
     Type: AWS::Glue::Table
-    DependsOn: IAMGlueDB
     Properties:
       CatalogId: !Ref AWS::AccountId
       DatabaseName: !Ref IAMGlueDB
@@ -33,9 +32,17 @@ Resources:
         Parameters: {
           "classification": "csv",
           "delimiter": ",",
-          "skip.header.line.count": "1",
-          "typeOfData": "file"
+          "skip.header.line.count": "1"
         }
+        PartitionKeys:
+          - Type: string
+            Name: year
+          - Type: string
+            Name: month
+          - Type: string
+            Name: day
+          - Type: string
+            Name: hour
         StorageDescriptor:
           StoredAsSubDirectories: False
           InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
