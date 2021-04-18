@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'This Cloudformation template creates a glue catalog database and a external report table'
+Parameters:
+  DatabaseName:
+    Description: Enter a name of the database.
+    Type: String
+    Default: "iam_reportdb"
+  TableName:
+    Description: Enter a name of the Table.
+    Type: String
+    Default: "iam_report"
+  S3Path:
+    Description: S3 path containing the report
+    Type: String
+    Default: ""
+Resources:
+  IAMGlueDB:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Ref DatabaseName
+  IAMGlueTable:
+    Type: AWS::Glue::Table
+    DependsOn: IAMGlueDB
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseName: !Ref IAMGlueDB
+      TableInput:
+        Description: "External table meta data for IAM report"
+        TableType: EXTERNAL_TABLE
+        Name: !Ref TableName
+        Parameters: {
+          "classification": "csv",
+          "delimiter": ",",
+          "skip.header.line.count": "1",
+          "typeOfData": "file"
+        }
+        StorageDescriptor:
+          StoredAsSubDirectories: False
+          InputFormat: "org.apache.hadoop.mapred.TextInputFormat"
+          OutputFormat: "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
+          Location: !Ref S3Path
+          Columns:
+            - Type: string
+              Name: user
+            - Type: string
+              Name: arn
+            - Type: string
+              Name: user_creation_time
+            - Type: string
+              Name: password_enabled
+            - Type: string
+              Name: password_last_used
+            - Type: string
+              Name: password_last_changed
+            - Type: string
+              Name: password_next_rotation
+            - Type: boolean
+              Name: mfa_active
+            - Type: boolean
+              Name: access_key_1_active
+            - Type: string
+              Name: access_key_1_last_rotated
+            - Type: string
+              Name: access_key_1_last_used_date
+            - Type: string
+              Name: access_key_1_last_used_region
+            - Type: string
+              Name: access_key_1_last_used_service
+            - Type: boolean
+              Name: access_key_2_active
+            - Type: string
+              Name: access_key_2_last_rotated
+            - Type: string
+              Name: access_key_2_last_used_date
+            - Type: string
+              Name: access_key_2_last_used_region
+            - Type: string
+              Name: access_key_2_last_used_service
+            - Type: boolean
+              Name: cert_1_active
+            - Type: string
+              Name: cert_1_last_rotated
+            - Type: boolean
+              Name: cert_2_active
+            - Type: string
+              Name: cert_2_last_rotated
+          SerdeInfo:
+            Parameters: {
+              "field.delim": ","
+            }
+            SerializationLibrary: "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
+
+Outputs:
+  Database:
+    Value: !Join
+      - ''
+      - - 'https://console.aws.amazon.com/glue/home?#database:name='
+        - !Ref IAMGlueDB
+        - /
+    Description: Glue database created
