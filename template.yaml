@@ -37,6 +37,7 @@ Resources:
       CodeUri: functions/generate_report/
       Handler: app.lambda_handler
       Runtime: python3.8
+      Timeout: 1
       Policies:
         - CloudWatchLogsFullAccess
         -  Statement:
@@ -51,6 +52,7 @@ Resources:
       CodeUri: functions/process_report/
       Handler: app.lambda_handler
       Runtime: python3.8
+      Timeout: 10
       Policies:
         - CloudWatchLogsFullAccess
         - Statement:
