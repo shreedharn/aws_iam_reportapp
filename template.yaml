@@ -25,6 +25,14 @@ Resources:
         GenerateReportFunctionArn: !GetAtt GenerateReportFunction.Arn
         ProcessReportFunctionArn: !GetAtt ProcessReportFunction.Arn
         ResultBucketName: !Ref BucketName
+      Events:
+        ReportAppSchedule:
+          Type: Schedule
+          Properties:
+            Schedule: 'cron(0 0 1 * ? *)'
+            Name: ReportAppSchedule
+            Description: Run at midnight of every month
+            Enabled: False
       Policies:
         - LambdaInvokePolicy:
             FunctionName: !Ref GenerateReportFunction
