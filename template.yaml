@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
+Globals:
+  Function:
+    Runtime: python3.8
+    Handler: app.lambda_handler
 Description: >
   Generate IAM Credential report and upload to a specified S3 bucket using AWS Step Functions
 Metadata:
@@ -16,6 +20,8 @@ Metadata:
 Parameters:
   BucketName:
     Type: String
+  NotificationTopic:
+    Type: String
 Resources:
   ReportAppStateMachine:
     Type: AWS::Serverless::StateMachine
@@ -25,6 +31,7 @@ Resources:
         GenerateReportFunctionArn: !GetAtt GenerateReportFunction.Arn
         ProcessReportFunctionArn: !GetAtt ProcessReportFunction.Arn
         ResultBucketName: !Ref BucketName
+        NotificationTopic: !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${NotificationTopic}'
       Events:
         ReportAppSchedule:
           Type: Schedule
@@ -43,8 +50,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/generate_report/
-      Handler: app.lambda_handler
-      Runtime: python3.8
       Timeout: 1
       Policies:
         - CloudWatchLogsFullAccess
@@ -58,13 +63,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/process_report/
-      Handler: app.lambda_handler
-      Runtime: python3.8
       Timeout: 10
       Policies:
         - CloudWatchLogsFullAccess
         - Statement:
-            - Effect: Allow
+            - Sid: GetCredReport
+              Effect: Allow
               Action:
                 - iam:GetCredentialReport
               Resource: '*'
@@ -73,6 +77,11 @@ Resources:
               Action: s3:*Object
               Resource:
                 - !Sub 'arn:aws:s3:::${BucketName}/*'
+            - Sid: PublishToNotificationTopic
+              Effect: Allow
+              Action: sns:Publish
+              Resource:
+                - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${NotificationTopic}'
 Outputs:
   ReportAppStateMachineArn:
     Description: "Report App State machine ARN"
