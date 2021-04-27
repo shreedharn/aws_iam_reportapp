@@ -6,6 +6,7 @@
       "Type": "Pass",
       "Result": {
         "bucket_name": "${ResultBucketName}",
+        "notification_topic": "${NotificationTopic}",
         "get_pass_count": 0,
         "get_max_pass_count": 3
       },
