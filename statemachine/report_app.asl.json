@@ -66,7 +66,7 @@
         {
           "Variable": "$.report.errorCode",
           "StringEquals": "ReportInProgress",
-          "Next": "Report In Progress"
+          "Next": "Wait"
         },
         {
           "Or": [
@@ -79,18 +79,10 @@
               "StringEquals": "ReportExpired"
             }
           ],
-          "Next": "Report Not Available"
+          "Next": "Generate Report"
         }
       ],
       "Default": "Get Report Failed"
-    },
-    "Report In Progress": {
-      "Type": "Pass",
-      "Next": "Wait"
-    },
-    "Report Not Available": {
-      "Type": "Pass",
-      "Next": "Generate Report"
     },
     "Get Report Failed": {
       "Type": "Fail",
