@@ -11,12 +11,12 @@ s3_client = boto3.client('s3')
 sns_client = boto3.client('sns')
 
 
-def cmd_success(response):
+def cmd_success(response):  # generic helper function to be moved to separate layer
     metadata = response['ResponseMetadata']
     return True if metadata['HTTPStatusCode'] == 200 else False
 
 
-def print_http_metadata(response):
+def print_http_metadata(response):  # generic helper function to be moved to separate layer
     print(response['ResponseMetadata'])
 
 
@@ -36,10 +36,8 @@ def get_flagged_entries(report_content):
 
 def lambda_handler(event, context):
     response = ({'state': 'failed', 'errorCode': None, **event['report']})
-    response['get_pass_count'] += 1  # increment pass count
 
     try:
-        print(f'Pass count {response["get_pass_count"]:2d}')
         iam_response = iam_client.get_credential_report()
         if cmd_success(iam_response):
             dt = iam_response['GeneratedTime']
@@ -63,6 +61,7 @@ def lambda_handler(event, context):
     except (iam_client.exceptions.CredentialReportNotReadyException,
             iam_client.exceptions.CredentialReportNotPresentException,
             iam_client.exceptions.CredentialReportExpiredException) as err:
+        # Credential report should be available when this function is called
         response['errorCode'] = err.response['Error']['Code']
 
     return response

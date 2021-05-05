@@ -11,7 +11,7 @@
         "get_max_pass_count": 3
       },
       "ResultPath": "$.report",
-      "Next": "Get Report"
+      "Next": "Generate Report"
     },
     "Generate Report": {
       "Type": "Task",
@@ -20,75 +20,76 @@
       "Retry": [
         {
           "ErrorEquals": [
-            "States.Timeout",
             "States.TaskFailed"
           ],
           "IntervalSeconds": 5,
           "MaxAttempts": 2
         }
       ],
-      "Next": "Wait"
+      "Next": "Generate Report Status?"
+    },
+    "Generate Report Status?": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.report.state",
+          "StringEquals": "success",
+          "Next": "Process Report"
+        },
+        {
+          "Or": [
+            {
+              "Variable": "$.report.state",
+              "StringEquals": "failed"
+            },
+            {
+              "Variable": "$.report.get_pass_count",
+              "NumericGreaterThanEqualsPath": "$.report.get_max_pass_count"
+            }
+          ],
+          "Next" : "Generate Report Failed"
+        }
+      ],
+      "Default": "Wait"
     },
     "Wait": {
       "Type": "Wait",
       "Seconds": 10,
-      "Next": "Get Report"
+      "Next": "Generate Report"
     },
-    "Get Report": {
+    "Process Report": {
       "Type": "Task",
       "Resource": "${ProcessReportFunctionArn}",
       "ResultPath": "$.report",
       "Retry": [
         {
           "ErrorEquals": [
-            "States.Timeout",
             "States.TaskFailed"
           ],
           "IntervalSeconds": 5,
           "MaxAttempts": 2
         }
       ],
-      "Next": "Get Report Status?"
+      "Next": "Process Report Status?"
     },
-    "Get Report Status?": {
+    "Process Report Status?": {
       "Type": "Choice",
       "Choices": [
         {
           "Variable": "$.report.state",
           "StringEquals": "success",
-          "Next": "Get Report Succeeded"
-        },
-        {
-          "Variable": "$.report.get_pass_count",
-          "NumericGreaterThanEqualsPath": "$.report.get_max_pass_count",
-          "Next": "Get Report Failed"
-        },
-        {
-          "Variable": "$.report.errorCode",
-          "StringEquals": "ReportInProgress",
-          "Next": "Wait"
-        },
-        {
-          "Or": [
-            {
-              "Variable": "$.report.errorCode",
-              "StringEquals": "ReportNotPresent"
-            },
-            {
-              "Variable": "$.report.errorCode",
-              "StringEquals": "ReportExpired"
-            }
-          ],
-          "Next": "Generate Report"
+          "Next": "Process Report Succeeded"
         }
       ],
-      "Default": "Get Report Failed"
+      "Default": "Process Report Failed"
     },
-    "Get Report Failed": {
-      "Type": "Fail",
-      "Cause": "$.report.errorCode"
+    "Generate Report Failed": {
+      "Type": "Fail"
     },
-    "Get Report Succeeded": {
+    "Process Report Failed": {
+      "Type": "Fail"
+    },
+    "Process Report Succeeded": {
       "Type": "Succeed"
     }
   }
